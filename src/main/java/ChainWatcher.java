@@ -38,36 +38,88 @@ public class ChainWatcher {
     public void activate() {
         var window = new ApplicationWindow(app);
         window.setTitle(networkModel.network().toString());
-        window.setDefaultSize(300, 200);
+        window.setDefaultSize(600, 400);
+
+        // --- CSS for the big block-height label and the status bar chrome ---
+        var css = new CssProvider();
+        css.loadFromString("""
+            .block-height {
+                font-size: 64pt;
+                font-weight: bold;
+                font-feature-settings: "tnum";   /* tabular numerals - digits don't jiggle */
+            }
+            .block-height-caption {
+                font-size: 11pt;
+                opacity: 0.65;
+            }
+            .block-hash {
+                font-size: 12pt;
+                font-weight: bold;
+                font-feature-settings: "tnum";   /* tabular numerals - digits don't jiggle */
+            }
+            .block-hash-caption {
+                font-size: 11pt;
+                opacity: 0.65;
+            }
+            .status-bar {
+                padding: 4px 10px;
+                border-top: 1px solid alpha(currentColor, 0.15);
+            }
+            """);
+
+        Gtk.styleContextAddProviderForDisplay(
+                window.getDisplay(),
+                css,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+
 
         var box = Box.builder()
             .setOrientation(Orientation.VERTICAL)
+            .setSpacing(4)
+            .setHexpand(true)
+            .setVexpand(true)
             .setHalign(Align.CENTER)
             .setValign(Align.CENTER)
             .build();
 
-        Label blocksLabel  = Label.builder().setLabel("0").build();
-        Label headersLabel = Label.builder().setLabel("0").build();
-        Label hashLabel    = Label.builder().setLabel("n/a").build();
+        var caption = new Label("Current block height");
+        caption.addCssClass("block-height-caption");
 
-        Label peersLabel    = Label.builder().setLabel("-1").build();
+        var mainHeightLabel = new Label("0");
+        mainHeightLabel.addCssClass("block-height");
+
+        var hashCaption = new Label("Best block hash");
+        hashCaption.addCssClass("block-hash-caption");
+
+        var hashLabel = new Label("0");
+        hashLabel.addCssClass("block-hash");
+
+        box.append(caption);
+        box.append(mainHeightLabel);
+        box.append(hashCaption);
+        box.append(hashLabel);
+
+//        Label blocksLabel = Label.builder().setLabel("0").build();
+//        Label headersLabel = Label.builder().setLabel("0").build();
+
+        //Label peersLabel    = Label.builder().setLabel("-1").build();
         Label bloomLabel    = Label.builder().setLabel("-1").build();
-        Label maxPeersLabel    = Label.builder().setLabel("-1").build();
+        //Label maxPeersLabel    = Label.builder().setLabel("-1").build();
 
-        FxGtkBinding.bindLabel(blocksLabel,  networkModel.blocksProperty(),         Object::toString);
-        FxGtkBinding.bindLabel(headersLabel, networkModel.headersProperty(),        Object::toString);
+        FxGtkBinding.bindLabel(mainHeightLabel,  networkModel.blocksProperty(),         Object::toString);
         FxGtkBinding.bindLabel(hashLabel,    networkModel.bestBlockHashProperty(),  Sha256Hash::toString);
 
-        FxGtkBinding.bindLabel(peersLabel,   networkModel.peerCountProperty(),  Object::toString);
-        FxGtkBinding.bindLabel(bloomLabel,   networkModel.bloomCountProperty(),  Object::toString);
-        FxGtkBinding.bindLabel(maxPeersLabel, networkModel.maxPeersProperty(),  Object::toString);
+//        FxGtkBinding.bindLabel(peersLabel,   networkModel.peerCountProperty(),  Object::toString);
+//        FxGtkBinding.bindLabel(bloomLabel,   networkModel.bloomCountProperty(),  Object::toString);
+//        FxGtkBinding.bindLabel(maxPeersLabel, networkModel.maxPeersProperty(),  Object::toString);
 
-        box.append(blocksLabel);
-        box.append(headersLabel);
-        box.append(hashLabel);
-        box.append(peersLabel);
-        box.append(bloomLabel);
-        box.append(maxPeersLabel);
+//        box.append(blocksLabel);
+//        box.append(headersLabel);
+//        box.append(hashLabel);
+//        box.append(peersLabel);
+//        box.append(bloomLabel);
+//        box.append(maxPeersLabel);
 
         // ActionRows are typically grouped inside a Gtk.ListBox
         //ListBox listBox = new ListBox();
@@ -84,7 +136,53 @@ public class ChainWatcher {
 // To update it later when new data arrives:
         //nameRow.setSubtitle(newDatabaseValue);
 
-        window.setChild(box);
+        // --- Status bar ---
+        var statusBar = new CenterBox();
+        statusBar.addCssClass("status-bar");
+
+// "Peers: N / M"
+        var peersBox = Box.builder()
+                .setOrientation(Orientation.HORIZONTAL)
+                .setSpacing(4)
+                .build();
+
+        Label peersLabel    = Label.builder().setLabel("0").setCssClasses(new String[]{"status-num"}).build();
+        Label maxPeersLabel = Label.builder().setLabel("0").setCssClasses(new String[]{"status-num"}).build();
+
+        FxGtkBinding.bindLabel(peersLabel,   networkModel.peerCountProperty(),  Object::toString);
+        FxGtkBinding.bindLabel(maxPeersLabel, networkModel.maxPeersProperty(),  Object::toString);
+
+        peersBox.append(new Label("Peers:"));
+        peersBox.append(peersLabel);
+        peersBox.append(new Label("/"));
+        peersBox.append(maxPeersLabel);
+
+// "Block: N / M"
+        var blockBox = Box.builder()
+                .setOrientation(Orientation.HORIZONTAL)
+                .setSpacing(4)
+                .build();
+
+        Label blocksLabel  = Label.builder().setLabel("0").setCssClasses(new String[]{"status-num"}).build();
+        Label headersLabel = Label.builder().setLabel("0").setCssClasses(new String[]{"status-num"}).build();
+
+        FxGtkBinding.bindLabel(blocksLabel,  networkModel.blocksProperty(),         Object::toString);
+        FxGtkBinding.bindLabel(headersLabel, networkModel.headersProperty(),        Object::toString);
+
+        blockBox.append(new Label("Block:"));
+        blockBox.append(blocksLabel);
+        blockBox.append(new Label("/"));
+        blockBox.append(headersLabel);
+
+        statusBar.setStartWidget(peersBox);
+        statusBar.setEndWidget(blockBox);
+
+        // --- Root ---
+        var root = new Box(Orientation.VERTICAL, 0);
+        root.append(box);
+        root.append(statusBar);
+
+        window.setChild(root);
         window.present();
     }
 
