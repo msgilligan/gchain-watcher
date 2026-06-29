@@ -88,6 +88,8 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         }
 
         peerGroup = new PeerGroup(networkModel.network(), blockChain);
+        // For some reason (use of bloom filters?) it syncs faster with an attached wallet
+        // se we create a disposable wallet.
         peerGroup.addWallet(createWallet(network));
         peerGroup.setUserAgent("ChainWatcher", "0.1");
         peerGroup.addPeerDiscovery(new DnsDiscovery(network));
