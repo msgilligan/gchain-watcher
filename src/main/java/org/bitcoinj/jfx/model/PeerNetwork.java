@@ -20,11 +20,9 @@ import org.bitcoinj.core.listeners.PeerConnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.MemoryFullPrunedBlockStore;
 import org.bitcoinj.store.SPVBlockStore;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletProtobufSerializer;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,13 +105,13 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
                 throw new RuntimeException(t);
             }
         });
-
-        peerGroup.setMaxConnections(3);
-        networkModel.setMaxPeers(3);
+        
+        final int MAX_PEERS = 4;
+        peerGroup.setMaxConnections(MAX_PEERS);
+        networkModel.setMaxPeers(MAX_PEERS);
 
         stpe = Executors.newScheduledThreadPool(2);
         scheduledFuture = stpe.scheduleAtFixedRate(this::updateBlockHeight, initialDelay, period, TimeUnit.SECONDS);
-
     }
 
     public NetworkModel networkModel() {
