@@ -11,9 +11,8 @@ public final class FxGtkBinding {
     private FxGtkBinding() {}
 
     /**
-     * Observe a JavaFX property and apply each new value via {@code updater}
-     * on the GTK main thread. Applies the current value immediately
-     * (call this from the GTK thread during UI setup).
+     * Observe a JavaFX property and apply each new value via {@code updater} on the GTK main thread.
+     * Applies the current value immediately (call this from the GTK thread during UI setup).
      */
     public static <T> void bind(ObservableValue<T> property, Consumer<? super T> updater) {
         updater.accept(property.getValue());

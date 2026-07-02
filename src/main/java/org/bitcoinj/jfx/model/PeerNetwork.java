@@ -7,7 +7,6 @@ import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Block;
 import org.bitcoinj.core.BlockChain;
 import org.bitcoinj.core.FilteredBlock;
-import org.bitcoinj.core.FullPrunedBlockChain;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Peer;
 import org.bitcoinj.core.PeerGroup;
@@ -135,17 +134,16 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
     public void onBlocksDownloaded(Peer peer, Block block, @Nullable FilteredBlock filteredBlock, int blocksLeft) {
         int newHeight = peerGroup.getMostCommonChainHeight();
         int blocks = Math.max(newHeight - blocksLeft, 0);
-        if (blocks != networkModel.blocks() || newHeight != networkModel.headers()) {
-            //log.warn("===== onBlocksDownloaded, block height: {}, blocksLeft: {}", newHeight, blocksLeft);
+        if (newHeight != networkModel.headers()) {
             networkModel.setHeaders(newHeight);
+        }
+        if (blocks != networkModel.blocks()) {
             networkModel.setBlocks(blocks);
             networkModel.setBestBlockHash(block.getHash());
-        } else {
-            //log.info("===== onBlocksDownloaded, blocksLeft: {}", blocksLeft);
         }
     }
 
-    // Dummy wallet, so we can attach to a PeerGroup
+    // Dummy wallet, so we can attach to a PeerGroup, without it sync is slower for some reason
     protected Wallet createWallet(BitcoinNetwork network) {
         KeyChainGroup kc = KeyChainGroup.builder(network, BIP43)
                 .fromRandom(ScriptType.P2PKH)
@@ -168,10 +166,6 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         log.warn("===== onPeerConnected, peerCount: {}", peerCount);
         networkModel.setPeerCount(peerCount);
         networkModel.setBloomPeers(countBloomPeers(peerGroup));
-//        if (peerCount > 2 && !isBloomFilteringSupported(peer)) {
-//            log.warn("===== Peer {} does not support Bloom Filters, closing.", peer.getAddress());
-//            peer.close();
-//        }
     }
 
     @Override
@@ -197,7 +191,7 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         return (clientVersion >= ProtocolVersion.BLOOM_FILTER.intValue()
                 && clientVersion < ProtocolVersion.BLOOM_FILTER_BIP111.intValue())
                 || version.services().has(Services.NODE_BLOOM);
-    }                                                                                             
+    }
 
     @Override
     public void onChainDownloadStarted(Peer peer, int blocksLeft) {

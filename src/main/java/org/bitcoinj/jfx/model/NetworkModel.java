@@ -79,7 +79,7 @@ public final class NetworkModel {
     void setBlocks(int value)               { blocks.set(value); }
     void setHeaders(int value)              { headers.set(value); }
     void setBestBlockHash(Sha256Hash value) { bestBlockHash.set(value); }
-    void setPeerCount(int value) { peerCount.set(value); }
-    void setBloomPeers(int value) { bloomCount.set(value); }
-    void setMaxPeers(int value) { maxPeers.set(value); }
+    void setPeerCount(int value)            { peerCount.set(value); }
+    void setBloomPeers(int value)           { bloomCount.set(value); }
+    void setMaxPeers(int value)             { maxPeers.set(value); }
 }
