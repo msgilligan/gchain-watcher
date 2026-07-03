@@ -4,6 +4,7 @@ import org.bitcoinj.fxgtk.FxGtkBinding;
 import org.bitcoinj.jfx.model.NetworkModel;
 import org.bitcoinj.jfx.model.PeerNetwork;
 import org.bitcoinj.utils.BriefLogFormatter;
+import org.gnome.gio.SimpleAction;
 import org.gnome.gtk.*;
 import org.gnome.gio.ApplicationFlags;
 import org.jspecify.annotations.NullMarked;
@@ -26,9 +27,18 @@ public class ChainWatcher {
         peerNetwork = new PeerNetwork(networkModel);
 
         app = new Application("org.bitcoij.ChainWatcher", ApplicationFlags.DEFAULT_FLAGS);
+        app.onStartup(this::startup);
         app.onActivate(this::activate);
         app.onShutdown(this::shutdown);
         app.run(args);
+    }
+
+    private void startup() {
+        var quitAction = new SimpleAction("quit", null);
+        quitAction.onActivate(param -> app.quit());
+        app.addAction(quitAction);
+
+        app.setAccelsForAction("app.quit", new String[]{ "<Primary>q", "<Meta>q" });
     }
 
     public void activate() {
