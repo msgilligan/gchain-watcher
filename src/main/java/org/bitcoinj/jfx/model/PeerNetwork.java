@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 M. Sean Gilligan.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.bitcoinj.jfx.model;
 
 import org.bitcoinj.base.BitcoinNetwork;
@@ -39,9 +54,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.bitcoinj.wallet.KeyChainGroupStructure.BIP43;
 
-/**
- *
- */
+/// A service that creates a PeerGroup, BlockStore, and disposable wallet and uses it to update a JavaFX NetworkModel,
+/// which can be used to update a JavaFX or Gtk4 UI.
 public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownloadedEventListener, PeerConnectedEventListener, PeerDisconnectedEventListener {
     private static final Logger log = LoggerFactory.getLogger(PeerNetwork.class);
     private static final int initialDelay = 0;
@@ -57,6 +71,8 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
     // the ScheduledExecutorService
     private ScheduledFuture<?> scheduledFuture;
 
+    /// Create and start a PeerNetwork
+    /// @param networkModel JavaFX model object to update dynamically
     public PeerNetwork(NetworkModel networkModel) {
         this.networkModel = networkModel;
         BitcoinNetwork network = networkModel.network();
@@ -64,7 +80,6 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         networkModel.setHeaders(0);
         networkModel.setBestBlockHash(Sha256Hash.ZERO_HASH);
 
-        //var blockStore = new MemoryFullPrunedBlockStore(NetworkParameters.of(network), 10);
         File dataDirectory = null;
         try {
             dataDirectory = Files.createTempDirectory("temp-wallet-dir").toFile();
@@ -80,20 +95,17 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         }
 
         try {
-            //blockChain = new FullPrunedBlockChain(NetworkParameters.of(network), blockStore);
             blockChain = new BlockChain(network, blockStore);
         } catch (BlockStoreException e) {
             throw new RuntimeException(e);
         }
 
         peerGroup = new PeerGroup(networkModel.network(), blockChain);
-        // For some reason (use of bloom filters?) it syncs faster with an attached wallet
-        // se we create a disposable wallet.
+        // It syncs faster with an attached wallet, so create a disposable wallet
         peerGroup.addWallet(createWallet(network));
         peerGroup.setUserAgent("ChainWatcher", "0.1");
         peerGroup.addPeerDiscovery(new DnsDiscovery(network));
 
-        //peerGroup.addBlocksDownloadedEventListener(this);
         peerGroup.addConnectedEventListener(this);
         peerGroup.addDisconnectedEventListener(this);
 
@@ -143,7 +155,8 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         }
     }
 
-    // Dummy wallet, so we can attach to a PeerGroup, without it sync is slower for some reason
+    // Disposable wallet, with a random seed, so we can attach it to the PeerGroup,
+    // without the attached wallet blockchain sync is slower for some reason
     protected Wallet createWallet(BitcoinNetwork network) {
         KeyChainGroup kc = KeyChainGroup.builder(network, BIP43)
                 .fromRandom(ScriptType.P2PKH)

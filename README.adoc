@@ -1,0 +1,18 @@
+= GChainWatcher
+
+A sample/experimental https://www.gtk.org[Gtk4] application built using https://bitcoinj.org[bitcoinj] and https://java-gi.org[Java-GI], that connects to peers on the https://bitcoin.org/[Bitcoin] network (using a bitcoinj https://bitcoinj.org/javadoc/0.17.1/org/bitcoinj/core/PeerGroup.html[PeerGroup]) to monitor the current block height and "best" block hash.
+
+image::GChainWatcher-window.png[Screenshot]
+
+== To build and run:
+
+The https://nixos.org[Nix] https://wiki.nixos.org/wiki/Flakes[flake] takes care of loading all needed native libraries, Gradle, etc. so the build currently requires Nix.
+
+. `nix develop`
+. `gradle run`
+
+This should build and run on both macOS and Linux.
+
+
+
+
