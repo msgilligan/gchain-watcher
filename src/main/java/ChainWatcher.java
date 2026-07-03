@@ -30,7 +30,7 @@ import org.jspecify.annotations.NullMarked;
 public class ChainWatcher {
     private final Application app;
     private final NetworkModel networkModel;
-    private final PeerNetwork peerNetwork;
+    private PeerNetwork peerNetwork;
 
 
     static void main(String[] args) {
@@ -41,7 +41,6 @@ public class ChainWatcher {
         BriefLogFormatter.init(); // Make log output concise.
 
         networkModel = new NetworkModel(BitcoinNetwork.MAINNET);
-        peerNetwork = new PeerNetwork(networkModel);
 
         app = new Application("org.bitcoij.ChainWatcher", ApplicationFlags.DEFAULT_FLAGS);
         app.onStartup(this::startup);
@@ -146,6 +145,10 @@ public class ChainWatcher {
 
         window.setChild(root);
         window.present();
+
+        Thread.startVirtualThread(() -> {
+            peerNetwork = new PeerNetwork(networkModel);
+        });
     }
 
     private static CssProvider getCssProvider() {
@@ -179,6 +182,6 @@ public class ChainWatcher {
     }
 
     private void shutdown() {
-        peerNetwork.close();
+        if (peerNetwork != null) peerNetwork.close();
     }
 }
