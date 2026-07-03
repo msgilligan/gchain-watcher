@@ -74,7 +74,7 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
         File file = new File(dataDirectory, "java-gi-ChainWatcher" + ".spvchain");
         SPVBlockStore blockStore;
         try {
-            blockStore = new SPVBlockStore(NetworkParameters.of(network), file);
+            blockStore = new SPVBlockStore(NetworkParameters.of(network), file, 100, false);
         } catch (BlockStoreException e) {
             throw new RuntimeException(e);
         }
