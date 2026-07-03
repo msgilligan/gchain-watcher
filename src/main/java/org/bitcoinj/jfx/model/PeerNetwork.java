@@ -106,7 +106,7 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
                 throw new RuntimeException(t);
             }
         });
-        
+
         final int MAX_PEERS = 4;
         peerGroup.setMaxConnections(MAX_PEERS);
         networkModel.setMaxPeers(MAX_PEERS);
