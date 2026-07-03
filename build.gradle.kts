@@ -20,13 +20,19 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-jdk14:2.0.17")
 }
 
+val isMacOS = System.getProperty("os.name").lowercase().contains("mac")
+
 tasks.named<JavaExec>("run") {
-    jvmArgs("--enable-native-access=ALL-UNNAMED", "-XstartOnFirstThread")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+
+    if (isMacOS) {
+        jvmArgs("-XstartOnFirstThread")
+    }
 }
 
 application {
     mainClass = "ChainWatcher"
-    if (System.getProperty("os.name").lowercase().contains("mac")) {
+    if (isMacOS) {
         applicationDefaultJvmArgs = listOf("-XstartOnFirstThread")
     }
 }
