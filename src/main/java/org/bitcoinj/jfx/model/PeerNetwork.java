@@ -160,6 +160,7 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
     protected Wallet createWallet(BitcoinNetwork network) {
         KeyChainGroup kc = KeyChainGroup.builder(network, BIP43)
                 .fromRandom(ScriptType.P2PKH)
+                .lookaheadSize(3)
                 .build();
         return new Wallet(network, kc);
     }
