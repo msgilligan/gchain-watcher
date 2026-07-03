@@ -20,6 +20,7 @@ import org.bitcoinj.jfx.model.NetworkModel;
 import org.bitcoinj.jfx.model.PeerNetwork;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.gnome.gio.SimpleAction;
+import org.gnome.glib.GLib;
 import org.gnome.gtk.*;
 import org.gnome.gio.ApplicationFlags;
 import org.jspecify.annotations.NullMarked;
@@ -149,6 +150,13 @@ public class ChainWatcher {
         Thread.startVirtualThread(() -> {
             peerNetwork = new PeerNetwork(networkModel);
         });
+
+        if (System.getenv("CHAINWATCHER_AOT_TRAINING") != null) {
+            GLib.timeoutAddSeconds(GLib.PRIORITY_DEFAULT, 10, () -> {
+                app.quit();
+                return false;
+            });
+        }
     }
 
     private static CssProvider getCssProvider() {
