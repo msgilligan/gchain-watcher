@@ -13,7 +13,7 @@ javafx {
 }
 
 dependencies {
-    implementation("org.java-gi:gtk:1.0.0-RC1")
+    implementation("org.java-gi:gtk:1.0.0-RC2")
     //implementation("org.java-gi:adw:1.0.0-RC1")  // libadwaita (doesn't work will on macOS)
     implementation("org.bitcoinj:bitcoinj-core:0.17.1")
     implementation("org.slf4j:slf4j-api:2.0.17")
