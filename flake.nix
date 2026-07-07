@@ -34,8 +34,8 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             jdk25_headless
-            (pkgs.gradle_9.override { java = pkgs.jdk25_headless; })
-            (pkgs.maven.override { jdk_headless = pkgs.jdk25_headless; })
+            (pkgs.gradle_9-unwrapped.override { java = pkgs.jdk25_headless; })
+            # (pkgs.maven.override { jdk_headless = pkgs.jdk25_headless; })
           ] ++ nativeLibs;
 
           # Let the FFM linker find the GTK/GLib shared objects
