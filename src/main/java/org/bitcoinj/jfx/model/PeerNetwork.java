@@ -16,6 +16,7 @@
 package org.bitcoinj.jfx.model;
 
 import org.bitcoinj.base.BitcoinNetwork;
+import org.bitcoinj.base.Network;
 import org.bitcoinj.base.ScriptType;
 import org.bitcoinj.base.Sha256Hash;
 import org.bitcoinj.core.AbstractBlockChain;
@@ -32,10 +33,12 @@ import org.bitcoinj.core.listeners.BlockchainDownloadEventListener;
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener;
 import org.bitcoinj.core.listeners.PeerConnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
+import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.SPVBlockStore;
 import org.bitcoinj.wallet.KeyChainGroup;
+import org.bitcoinj.wallet.KeyChainGroupStructure;
 import org.bitcoinj.wallet.Wallet;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -51,8 +54,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import static org.bitcoinj.wallet.KeyChainGroupStructure.BIP43;
 
 /// A service that creates a PeerGroup, BlockStore, and disposable wallet and uses it to update a JavaFX NetworkModel,
 /// which can be used to update a JavaFX or Gtk4 UI.
@@ -158,11 +159,28 @@ public class PeerNetwork implements BlockchainDownloadEventListener, BlocksDownl
     // Disposable wallet, with a random seed, so we can attach it to the PeerGroup,
     // without the attached wallet blockchain sync is slower for some reason
     protected Wallet createWallet(BitcoinNetwork network) {
-        KeyChainGroup kc = KeyChainGroup.builder(network, BIP43)
+        KeyChainGroupStructure kcgStructure = (outputScriptType, n) ->
+                KeyChainGroupStructure.purpose(outputScriptType).extend(coinType(network), KeyChainGroupStructure.account(0));
+        KeyChainGroup kc = KeyChainGroup.builder(network, kcgStructure)
                 .fromRandom(ScriptType.P2PKH)
                 .lookaheadSize(3)
                 .build();
         return new Wallet(network, kc);
+    }
+
+    // Patched coinType() that works with SIGNET, see bitcoinj PR 4372
+    static ChildNumber coinType(Network network) {
+        if (!(network instanceof BitcoinNetwork)) {
+            throw new IllegalArgumentException("coinType: Unknown network");
+        }
+        switch ((BitcoinNetwork) network) {
+            case MAINNET:
+                return ChildNumber.COINTYPE_BTC;
+            case TESTNET, SIGNET, REGTEST:
+                return ChildNumber.COINTYPE_TBTC;
+            default:
+                throw new IllegalArgumentException("coinType: Unknown network");
+        }
     }
 
     public void close() {
