@@ -40,7 +40,9 @@ public class ChainWatcher {
     public ChainWatcher(String[] args) {
         BriefLogFormatter.init(); // Make log output concise.
 
-        networkModel = new NetworkModel(BitcoinNetwork.MAINNET);
+        BitcoinNetwork network = args.length > 0 ? BitcoinNetwork.fromString(args[0]).get() : BitcoinNetwork.MAINNET;
+
+        networkModel = new NetworkModel(network);
 
         app = new Application("org.bitcoij.ChainWatcher", ApplicationFlags.DEFAULT_FLAGS);
         app.onStartup(this::startup);
